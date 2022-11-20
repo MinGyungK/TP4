@@ -5,6 +5,7 @@
 #include <vector>
 #include <cassert>
 #include <math.h>
+#include <chrono>
 
 using namespace std;
 
@@ -15,6 +16,9 @@ int main ( int argc , char **argv )
   MPI_Comm_rank(MPI_COMM_WORLD, &pid ) ;
   MPI_Comm_size (MPI_COMM_WORLD, &nprocs ) ;
   
+  chrono::time_point<chrono::system_clock> start, end;
+
+
   int n = atoi(argv[1]);
   int root = atoi(argv[2]);
   int is_init_tab_monotone = atoi(argv[3]);
@@ -27,6 +31,7 @@ int main ( int argc , char **argv )
   	return 0;
   }
   
+  //INIT SUITE (Tableau U)
   int * suite;
   if (pid==root) {
  	  suite = new int[n];
@@ -40,8 +45,10 @@ int main ( int argc , char **argv )
         suite[i] = (int) (rand()%100);
       }   
     }
-    
-  	
+  }
+
+  if (pid==root) {
+      start = chrono::system_clock::now();
   }
 
   int* sendcounts;
@@ -116,6 +123,9 @@ int main ( int argc , char **argv )
    
    if (pid == root) {
     cout << "Tableau monotone : " << root_monotone << endl;
+    end = chrono::system_clock::now();
+    chrono::duration<double> elapsed_seconds = end-start;
+    cout << "tps=" << elapsed_seconds.count() << endl;
    }
   
   
