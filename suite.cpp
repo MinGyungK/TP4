@@ -97,10 +97,25 @@ int main ( int argc , char **argv )
     }
   }
 
+  int last_value_voisin_prec;
   if(pid % 2 == 0){
         MPI_Ssend(&suite_local[n_local-1], 1, MPI_INT, pid+1, 0, MPI_COMM_WORLD);
+        if(pid!=0){
+          MPI_Recv(&last_value_voisin_prec, 1, MPI_INT, pid-1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+          if(is_decroissant == 1){
+            //si decroissant, verifions si le voisin a une valeur inferieur dans ce cas il est non monotone
+            if(last_value_voisin_prec < suite_local[0]){
+              is_monotone = false;
+            }
+          }
+          if(is_croissant == 1){
+            //si croissant, verifions si le voisin a une valeur superieur dans ce cas il est non monotone
+            if(last_value_voisin_prec > suite_local[0]){
+              is_monotone = false;
+            }
+          }
+        }
   }else{
-        int last_value_voisin_prec;
         MPI_Recv(&last_value_voisin_prec, 1, MPI_INT, pid-1, 0, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
         if(is_decroissant == 1){
           //si decroissant, verifions si le voisin a une valeur inferieur dans ce cas il est non monotone
@@ -114,7 +129,9 @@ int main ( int argc , char **argv )
             is_monotone = false;
           }
         }
-
+        if(pid!=nprocs-1){
+          MPI_Ssend(&suite_local[n_local-1], 1, MPI_INT, pid+1, 0, MPI_COMM_WORLD);
+        }
   }
 
    // REDUCE sur monotonne avec un produit 
